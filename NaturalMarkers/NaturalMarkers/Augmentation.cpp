@@ -1,7 +1,9 @@
 #include "Augmentation.h"
 
-Augmentation::Augmentation() {}
+// Constructor and destructor
+Augmentation::Augmentation(const string imgPath) {}
 
 Augmentation::~Augmentation() {}
 
+// Methods
 void Augmentation::start() {}

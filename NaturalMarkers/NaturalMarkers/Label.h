@@ -5,18 +5,30 @@
 using namespace cv;
 using namespace std;
 
+#define SCALE     2
+#define THICKNESS 2
+#define OFFSET    20
+
 class Label {
 private:
+	// Private properties
 	string ID;
 	string text;
 	Point center;
 	Point llCorner;
 	Rect boundingBox;
+
+	// Static counter
 	static int counter;
 public:
-	Label(string text, Point center);
+	// Constructor and destructor
+	Label(const string text, const Point center);
 	~Label();
 
+	// Methods
+	void updateLabel();
+
+	// Getters
 	string getID() const;
 	string getText() const;
 	Point getCenter() const;
@@ -26,6 +38,7 @@ public:
 	int getCenterX() const;
 	int getCenterY() const;
 
+	// Setters
 	void setText(const string text);
 	void setCenter(const Point center);
 };

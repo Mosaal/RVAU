@@ -7,13 +7,18 @@ using namespace std;
 
 class Rectangle {
 private:
+	// Private properties
 	string ID;
 	Rect rect;
+
+	// Static counter
 	static int counter;
 public:
-	Rectangle(Rect rect);
+	// Constructor and destructor
+	Rectangle(const Rect rect);
 	~Rectangle();
 
+	// Getters
 	string getID() const;
 	Rect getRect() const;
 
@@ -22,6 +27,7 @@ public:
 	int getRectWidth() const;
 	int getRectHeight() const;
 
+	// Setters
 	void setID(const string ID);
 	void setRect(const Rect rect);
 };

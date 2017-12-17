@@ -7,14 +7,19 @@ using namespace std;
 
 class Arrow {
 private:
+	// Private properties
 	string ID;
 	Point tip;
 	Point tail;
+
+	// Static counter
 	static int counter;
 public:
-	Arrow(Point tip, Point tail);
+	// Constructor and destructor
+	Arrow(const Point tip, const Point tail);
 	~Arrow();
 
+	// Getters
 	string getID() const;
 	int getTipX() const;
 	int getTipY() const;
@@ -24,6 +29,7 @@ public:
 	Point getTip() const;
 	Point getTail() const;
 
+	// Setters
 	void setTip(const Point tip);
 	void setTail(const Point tail);
 };
