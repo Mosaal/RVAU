@@ -28,6 +28,11 @@ Preparation::Preparation(string dirPath): mode("") {
 		exit(1);
 	}
 
+	// Get the directory's name
+	fs::path tmp(dirPath);
+	stringstream ss; ss << tmp.filename();
+	fileName = ss.str();
+
 	// Success message
 	cout << "\n[PREPARATION] Mode started successfully!" << endl;
 }
@@ -286,6 +291,14 @@ void Preparation::handleInput(int input) {
 
 				// Refresh image
 				imgs[currImg].updateImage();
+			} else if (!DRAWING && !WRITING) {
+				// User is done and wants to save data from prepared database
+				prepareDatabase();
+
+				// End preparation mode
+				cout << "[PREPARATION] Mode ended successfully!" << endl;
+				// system("pause");
+				exit(0);
 			}
 			break;
 		}
@@ -315,4 +328,81 @@ void Preparation::handleInput(int input) {
 			}
 		}
 	}
+}
+
+void Preparation::prepareDatabase() {
+	// Get all subsets from all images
+	vector<vector<Mat>> subSetImgs;
+	// vector<vector<Mat>> subSetDescriptors;
+
+	// Loop through all of the images
+	for (int i = 0; i < imgs.size(); i++) {
+		// Subset of images
+		vector<Mat> subSet;
+
+		// Loop through all of the rectangles
+		for (int j = 0; j < imgs[i].getRects().size(); j++) {
+			// Get subset and it to the list
+			Mat temp(imgs[i].getPlaceholder(), imgs[i].getRect(j).getRect());
+			subSet.push_back(temp);
+		}
+
+		// Loop through all of the arrows
+		 for (int j = 0; j < imgs[i].getArrows().size(); j++) {
+			 // Get subset and it to the list
+			 Rect rectOffSet(imgs[i].getArrow(j).getTipX() - 20,
+							 imgs[i].getArrow(j).getTipY() - ARROW_SIZE - 20,
+							 40, ARROW_SIZE + 40);
+			 Mat temp(imgs[i].getPlaceholder(), rectOffSet);
+			 subSet.push_back(temp);
+		 }
+
+		// Loop through all of the labels
+		for (int j = 0; j < imgs[i].getLabels().size(); j++) {
+			// Get subset and it to the list
+			Rect rectOffset(imgs[i].getLabel(j).getBoundingBox().x - 20,
+							imgs[i].getLabel(j).getBoundingBox().y - 20,
+							imgs[i].getLabel(j).getBoundingBox().width + 40,
+							imgs[i].getLabel(j).getBoundingBox().height + 40);
+			Mat temp(imgs[i].getPlaceholder(), rectOffset);
+			subSet.push_back(temp);
+		}
+
+		// Save data from corresponding image
+		subSetImgs.push_back(subSet);
+	}
+
+	// Using SIFT to detect features
+	Ptr<SIFT> sift = SIFT::create();
+	FileStorage outFile(fileName + ".yml", FileStorage::WRITE);
+
+	// Calculate the number of images and the number of attributes
+	vector<int> numberOfAttrs;
+	for (int i = 0; i < subSetImgs.size(); i++)
+		numberOfAttrs.push_back((int)subSetImgs[i].size());
+
+	// Save it before the features
+	write(outFile, "Total", numberOfAttrs);
+
+	// Loop through all of the subset images
+	for (int i = 0; i < subSetImgs.size(); i++) {
+		for (int j = 0; j < subSetImgs[i].size(); j++) {
+			// Detect keypoints
+			vector<KeyPoint> keyPoints;
+
+			// Create descriptors
+			Mat descriptors;
+
+			// Use SIFT to detect and compute
+			sift->detectAndCompute(subSetImgs[i][j], Mat(), keyPoints, descriptors);
+
+			// Save the image's data
+			string ID = to_string(i) + to_string(j);
+			write(outFile, "KeyPoints" + ID, keyPoints);
+			write(outFile, "Descriptors" + ID, descriptors);
+		}
+	}
+
+	// Close the output file
+	outFile.release();
 }

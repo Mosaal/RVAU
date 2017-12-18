@@ -4,10 +4,14 @@
 #include <sstream>
 #include <iostream>
 #include <filesystem>
+#include <opencv2\opencv.hpp>
+#include <opencv2\xfeatures2d.hpp>
 
 #include "Image.h"
 
+using namespace cv;
 using namespace std;
+using namespace cv::xfeatures2d;
 namespace fs = experimental::filesystem;
 
 #define BACKSPACE  8
@@ -30,6 +34,7 @@ private:
 	int llx;
 	string mode;
 	string window;
+	string fileName;
 	vector<char> possibleChars;
 public:
 	// Public properties
@@ -52,6 +57,7 @@ public:
 	void update();
 	void display();
 	void updateMode();
+	void prepareDatabase();
 	void handleInput(const int input);
 
 	void removeAttribute(const string ID);
