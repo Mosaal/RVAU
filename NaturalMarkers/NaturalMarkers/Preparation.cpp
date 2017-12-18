@@ -333,7 +333,6 @@ void Preparation::handleInput(int input) {
 void Preparation::prepareDatabase() {
 	// Get all subsets from all images
 	vector<vector<Mat>> subSetImgs;
-	// vector<vector<Mat>> subSetDescriptors;
 
 	// Loop through all of the images
 	for (int i = 0; i < imgs.size(); i++) {
