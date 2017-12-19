@@ -10,13 +10,16 @@ using namespace std;
 using namespace cv::xfeatures2d;
 namespace fs = experimental::filesystem;
 
+#define NO_DELAY   0
 #define MULTIPLIER 3
+#define ARROW_SIZE 50
 #define RED        Scalar(0, 0, 255)
 #define WHITE      Scalar(255, 255, 255)
 
 class Augmentation {
 private:
 	// Private properties
+	int debug;
 	string fileName;
 	vector<SubSet> subSets;
 
@@ -25,7 +28,7 @@ private:
 	vector<KeyPoint> sceneKeyPoints;
 public:
 	// Constructor and destructor
-	Augmentation(const string imgPath);
+	Augmentation(const int debug, const string imgPath);
 	~Augmentation();
 
 	// Methods

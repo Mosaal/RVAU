@@ -32,6 +32,7 @@ class Preparation {
 private:
 	// Private properties
 	int llx;
+	int debug;
 	string mode;
 	string window;
 	string fileName;
@@ -49,7 +50,7 @@ public:
 	string labelText = "";
 
 	// Constructor and destructor
-	Preparation(const string dirPath);
+	Preparation(const int debug, const string dirPath);
 	~Preparation();
 
 	// Methods

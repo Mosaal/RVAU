@@ -1,11 +1,12 @@
 #include "Augmentation.h"
 
 // Constructor and destructor
-Augmentation::Augmentation(const string imgPath) {
+Augmentation::Augmentation(const int debug, const string imgPath): debug(debug) {
 	// Directory with the database, image to be augmented and results' file must have the same name
 	sceneImg = imread(imgPath, CV_LOAD_IMAGE_COLOR);
 	if (!sceneImg.data) {
 		cout << "\nERROR: Invalid file type!" << endl;
+		system("pause");
 		exit(1);
 	}
 
@@ -17,6 +18,7 @@ Augmentation::Augmentation(const string imgPath) {
 	fs::path dir(fileName);
 	if (!fs::is_directory(dir)) {
 		cout << "\nERROR: No directory found with the database!" << endl;
+		system("pause");
 		exit(1);
 	}
 
@@ -24,6 +26,7 @@ Augmentation::Augmentation(const string imgPath) {
 	fs::path file(fileName + ".yml");
 	if (!fs::is_regular_file(file)) {
 		cout << "\nERROR: No results file found!" << endl;
+		system("pause");
 		exit(1);
 	}
 
@@ -146,6 +149,15 @@ void Augmentation::localize() {
 		subSets[i].setScene(scene);
 	}
 
+	// Remove the subsets without enough points
+	for (int i = 0; i < subSets.size(); i++) {
+		// Check if either the object or the scene dont't have enough keypoints
+		if (subSets[i].getObj().size() == 0 || subSets[i].getScene().size() == 0) {
+			subSets.erase(subSets.begin() + i);
+			i--;
+		}
+	}
+
 	// Find homography for each subset
 	for (int i = 0; i < subSets.size(); i++) {
 		Mat homography = findHomography(subSets[i].getObj(), subSets[i].getScene(), CV_RANSAC);
@@ -176,27 +188,31 @@ void Augmentation::display() {
 	for (int i = 0; i < subSets.size(); i++) {
 		// Draw the corresponding attribute
 		if (subSets[i].getType() == "A") {
-			// TODO: Draw arrowed lines
+			// Get arrow's position
+			int x = (int)subSets[i].getSceneCorner(0).x, y = (int)subSets[i].getSceneCorner(0).y;
 
-			//// Get rectangle data
-			//int x = (int)subSets[i].getSceneCorner(0).x, y = (int)subSets[i].getSceneCorner(0).y;
-			//int width = (int)(subSets[i].getSceneCorner(1).x - x);
-			//int height = (int)(subSets[i].getSceneCorner(3).y - y);
-
-			//// Create and draw rectangle
-			//Rect rect(x, y, width, height);
-			//rectangle(sceneImg, rect, Scalar(255, 0, 0), THICKNESS);
+			// Create and draw arrow
+			Arrow arrow(Point(x + OFFSET, y + OFFSET + ARROW_SIZE), Point(x + OFFSET, y + OFFSET));
+			arrowedLine(sceneImg, arrow.getTail(), arrow.getTip(), RED, THICKNESS);
 		} else if (subSets[i].getType() == "L") {
-			// TODO: Write and draw labels
+			// Get label position
+			int x = (int)subSets[i].getSceneCorner(0).x, y = (int)subSets[i].getSceneCorner(0).y;
 
-			//// Get rectangle data
-			//int x = (int)subSets[i].getSceneCorner(0).x, y = (int)subSets[i].getSceneCorner(0).y;
-			//int width = (int)(subSets[i].getSceneCorner(1).x - x);
-			//int height = (int)(subSets[i].getSceneCorner(3).y - y);
+			// Get the text's size
+			int baseline = 2;
+			Size textSize = getTextSize(subSets[i].getLabel(), FONT_HERSHEY_PLAIN, SCALE, THICKNESS, &baseline);
 
-			//// Create and draw rectangle
-			//Rect rect(x, y, width, height);
-			//rectangle(sceneImg, rect, WHITE, CV_FILLED);
+			// Calculate the bounding box's dimensions
+			int width = x + textSize.width + OFFSET;
+			int height = y + textSize.height + OFFSET;
+
+			// Create label
+			Point center(x + (width / 2), y + (height / 2));
+			Label label(subSets[i].getLabel(), center);
+
+			// Draw label
+			rectangle(sceneImg, label.getBoundingBox(), WHITE, CV_FILLED);
+			putText(sceneImg, label.getText(), label.getLLCorner(), FONT_HERSHEY_PLAIN, SCALE, RED, THICKNESS);
 		} else if (subSets[i].getType() == "R") {
 			// Get rectangle data
 			int x = (int)subSets[i].getSceneCorner(0).x, y = (int)subSets[i].getSceneCorner(0).y;
@@ -207,17 +223,11 @@ void Augmentation::display() {
 			Rect rect(x, y, width, height);
 			rectangle(sceneImg, rect, RED, THICKNESS);
 		}
-
-		// Draw the lines between the corners
-		/*line(sceneImg, subSets[i].getSceneCorner(0), subSets[i].getSceneCorner(1), RED, THICKNESS);
-		line(sceneImg, subSets[i].getSceneCorner(1), subSets[i].getSceneCorner(2), RED, THICKNESS);
-		line(sceneImg, subSets[i].getSceneCorner(2), subSets[i].getSceneCorner(3), RED, THICKNESS);
-		line(sceneImg, subSets[i].getSceneCorner(3), subSets[i].getSceneCorner(0), RED, THICKNESS);*/
 	}
 
 	// Display the final image
 	imshow("Final Image", sceneImg);
 
 	// Wait for keyboard press to end the program
-	waitKey(0);
+	waitKey(NO_DELAY);
 }

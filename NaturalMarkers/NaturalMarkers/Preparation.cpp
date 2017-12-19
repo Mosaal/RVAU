@@ -1,7 +1,7 @@
 #include "Preparation.h"
 
 // Constructor and destructor
-Preparation::Preparation(string dirPath): mode("") {
+Preparation::Preparation(const int debug, const string dirPath): mode(""), debug(debug) {
 	// Iterate through given directory
 	for (auto &file: fs::directory_iterator(dirPath)) {
 		// Get the file's path
@@ -296,8 +296,8 @@ void Preparation::handleInput(int input) {
 				prepareDatabase();
 
 				// End preparation mode
-				cout << "[PREPARATION] Mode ended successfully!" << endl;
-				// system("pause");
+				cout << "\n[PREPARATION] Mode ended successfully!" << endl;
+				system("pause");
 				exit(0);
 			}
 			break;
@@ -352,9 +352,9 @@ void Preparation::prepareDatabase() {
 		// Loop through all of the arrows
 		 for (int j = 0; j < imgs[i].getArrows().size(); j++) {
 			 // Get subset and it to the list
-			 Rect rectOffSet(imgs[i].getArrow(j).getTipX() - 20,
-							 imgs[i].getArrow(j).getTipY() - ARROW_SIZE - 20,
-							 40, ARROW_SIZE + 40);
+			 Rect rectOffSet(imgs[i].getArrow(j).getTipX() - OFFSET,
+							 imgs[i].getArrow(j).getTipY() - ARROW_SIZE - OFFSET,
+							 OFFSET * 2, ARROW_SIZE + (OFFSET * 2));
 			 Mat temp(imgs[i].getPlaceholder(), rectOffSet);
 			 subSet.push_back(temp);
 			 attrs.push_back("A");
@@ -363,10 +363,10 @@ void Preparation::prepareDatabase() {
 		// Loop through all of the labels
 		for (int j = 0; j < imgs[i].getLabels().size(); j++) {
 			// Get subset and it to the list
-			Rect rectOffset(imgs[i].getLabel(j).getBoundingBox().x - 20,
-							imgs[i].getLabel(j).getBoundingBox().y - 20,
-							imgs[i].getLabel(j).getBoundingBox().width + 40,
-							imgs[i].getLabel(j).getBoundingBox().height + 40);
+			Rect rectOffset(imgs[i].getLabel(j).getBoundingBox().x - OFFSET,
+							imgs[i].getLabel(j).getBoundingBox().y - OFFSET,
+							imgs[i].getLabel(j).getBoundingBox().width + (OFFSET * 2),
+							imgs[i].getLabel(j).getBoundingBox().height + (OFFSET * 2));
 			Mat temp(imgs[i].getPlaceholder(), rectOffset);
 			subSet.push_back(temp);
 			attrs.push_back("L_" + imgs[i].getLabel(j).getText());
@@ -377,7 +377,7 @@ void Preparation::prepareDatabase() {
 		metadata.push_back(attrs);
 	}
 
-	// Using SIFT to detect features
+	// Save all of the images' data
 	FileStorage outFile(fileName + ".yml", FileStorage::WRITE);
 
 	// Save metadata before the features
