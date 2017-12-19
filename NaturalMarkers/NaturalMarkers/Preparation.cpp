@@ -333,17 +333,20 @@ void Preparation::handleInput(int input) {
 void Preparation::prepareDatabase() {
 	// Get all subsets from all images
 	vector<vector<Mat>> subSetImgs;
+	vector<vector<string>> metadata;
 
 	// Loop through all of the images
 	for (int i = 0; i < imgs.size(); i++) {
-		// Subset of images
+		// Subset of images and attribute types
 		vector<Mat> subSet;
+		vector<string> attrs;
 
 		// Loop through all of the rectangles
 		for (int j = 0; j < imgs[i].getRects().size(); j++) {
 			// Get subset and it to the list
 			Mat temp(imgs[i].getPlaceholder(), imgs[i].getRect(j).getRect());
 			subSet.push_back(temp);
+			attrs.push_back("R");
 		}
 
 		// Loop through all of the arrows
@@ -354,6 +357,7 @@ void Preparation::prepareDatabase() {
 							 40, ARROW_SIZE + 40);
 			 Mat temp(imgs[i].getPlaceholder(), rectOffSet);
 			 subSet.push_back(temp);
+			 attrs.push_back("A");
 		 }
 
 		// Loop through all of the labels
@@ -365,40 +369,26 @@ void Preparation::prepareDatabase() {
 							imgs[i].getLabel(j).getBoundingBox().height + 40);
 			Mat temp(imgs[i].getPlaceholder(), rectOffset);
 			subSet.push_back(temp);
+			attrs.push_back("L_" + imgs[i].getLabel(j).getText());
 		}
 
 		// Save data from corresponding image
 		subSetImgs.push_back(subSet);
+		metadata.push_back(attrs);
 	}
 
 	// Using SIFT to detect features
-	Ptr<SIFT> sift = SIFT::create();
 	FileStorage outFile(fileName + ".yml", FileStorage::WRITE);
 
-	// Calculate the number of images and the number of attributes
-	vector<int> numberOfAttrs;
-	for (int i = 0; i < subSetImgs.size(); i++)
-		numberOfAttrs.push_back((int)subSetImgs[i].size());
-
-	// Save it before the features
-	write(outFile, "Total", numberOfAttrs);
+	// Save metadata before the features
+	outFile << "Metadata" << metadata;
 
 	// Loop through all of the subset images
 	for (int i = 0; i < subSetImgs.size(); i++) {
 		for (int j = 0; j < subSetImgs[i].size(); j++) {
-			// Detect keypoints
-			vector<KeyPoint> keyPoints;
-
-			// Create descriptors
-			Mat descriptors;
-
-			// Use SIFT to detect and compute
-			sift->detectAndCompute(subSetImgs[i][j], Mat(), keyPoints, descriptors);
-
 			// Save the image's data
 			string ID = to_string(i) + to_string(j);
-			write(outFile, "KeyPoints" + ID, keyPoints);
-			write(outFile, "Descriptors" + ID, descriptors);
+			outFile << "SubSet" + ID << subSetImgs[i][j];
 		}
 	}
 
