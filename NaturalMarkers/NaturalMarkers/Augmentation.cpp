@@ -41,6 +41,10 @@ void Augmentation::start() {
 	// Load the corresponding YAML file
 	FileStorage inFile(fileName + ".yml", FileStorage::READ);
 
+	// Check if Debug mode is on
+	if (debug == DEBUG_ON)
+		cout << "[AUGMENTATION] Loading data from the corresponding YAML file..." << endl;
+
 	// Read metadata
 	vector<vector<string>> metadata;
 	inFile["Metadata"] >> metadata;
@@ -61,8 +65,12 @@ void Augmentation::start() {
 		}
 	}
 
-	// Close the file
+	// Close the input file
 	inFile.release();
+
+	// Check if Debug mode is on
+	if (debug == DEBUG_ON)
+		cout << "[AUGMENTATION] Data loaded successfully!" << endl;
 
 	// Detect the loaded images' and augmented image's features
 	detectFeatures();
@@ -72,8 +80,18 @@ void Augmentation::detectFeatures() {
 	// Using SIFT to detect the scene's features
 	Ptr<SIFT> sift = SIFT::create();
 
+	// Check if Debug mode is on
+	if (debug == DEBUG_ON)
+		cout << "[AUGMENTATION] Using SIFT to detect the image's features..." << endl;
+
 	// Detect and save the scene's keypoints and descriptors
 	sift->detectAndCompute(sceneImg, Mat(), sceneKeyPoints, sceneDescriptors);
+
+	// Check if Debug mode is on
+	if (debug == DEBUG_ON) {
+		cout << "[AUGMENTATION] Image's features detected successfully!" << endl;
+		cout << "[AUGMENTATION] Using SIFT to detect subset images' features..." << endl;
+	}
 
 	// Detect and save each of the subsets' keypoints and descriptors
 	for (int i = 0; i < subSets.size(); i++) {
@@ -89,6 +107,10 @@ void Augmentation::detectFeatures() {
 		subSets[i].setDescriptors(descriptors);
 	}
 
+	// Check if Debug mode is on
+	if (debug == DEBUG_ON)
+		cout << "[AUGMENTATION] Subset images' features detected successfully!" << endl;
+
 	// Match descriptors using FLANN matcher
 	match();
 }
@@ -97,12 +119,20 @@ void Augmentation::match() {
 	// Match descriptors using FLANN matcher
 	FlannBasedMatcher matcher;
 
+	// Check if Debug mode is on
+	if (debug == DEBUG_ON)
+		cout << "[AUGMENTATION] Using FLANN based matching to match the image's subsets with itself..." << endl;
+
 	// Save all of the matches for each of the subsets
 	for (int i = 0; i < subSets.size(); i++) {
 		vector<DMatch> matches;
 		matcher.match(subSets[i].getDescriptors(), sceneDescriptors, matches);
 		subSets[i].setMatches(matches);
 	}
+
+	// Check if Debug mode is on
+	if (debug == DEBUG_ON)
+		cout << "[AUGMENTATION] All matches were found successfully!" << endl;
 
 	// Calculate the min and max distances between keypoints for each of the subsets
 	for (int i = 0; i < subSets.size(); i++) {
@@ -118,6 +148,10 @@ void Augmentation::match() {
 		}
 	}
 
+	// Check if Debug mode is on
+	if (debug == DEBUG_ON)
+		cout << "[AUGMENTATION] Eliminating the non-good matches..." << endl;
+
 	// We only want the good matches
 	for (int i = 0; i < subSets.size(); i++) {
 		for (int j = 0; j < subSets[i].getDescriptors().rows; j++) {
@@ -127,11 +161,19 @@ void Augmentation::match() {
 		}
 	}
 
+	// Check if Debug mode is on
+	if (debug == DEBUG_ON)
+		cout << "[AUGMENTATION] Non-good matches eliminated successfully!" << endl;
+
 	// Localize the subsets
 	localize();
 }
 
 void Augmentation::localize() {
+	// Check if Debug mode is on
+	if (debug == DEBUG_ON)
+		cout << "[AUGMENTATION] Loading the keypoints from the good matches..." << endl;
+
 	// Get the keypoints from the good matches
 	for (int i = 0; i < subSets.size(); i++) {
 		// Get the keypoints
@@ -149,13 +191,35 @@ void Augmentation::localize() {
 		subSets[i].setScene(scene);
 	}
 
+	// Check if Debug mode is on
+	if (debug == DEBUG_ON) {
+		cout << "[AUGMENTATION] Keypoints loaded successfully!" << endl;
+		cout << "[AUGMENTATION] Eliminating the subsets without enough keypoints..." << endl;
+	}
+
 	// Remove the subsets without enough points
 	for (int i = 0; i < subSets.size(); i++) {
 		// Check if either the object or the scene dont't have enough keypoints
 		if (subSets[i].getObj().size() == 0 || subSets[i].getScene().size() == 0) {
-			subSets.erase(subSets.begin() + i);
-			i--;
+			// Check if Debug mode is on
+			if (debug == DEBUG_ON) {
+				if (subSets[i].getType() == "A")
+					cout << "[AUGMENTATION] An arrow has been eliminated!" << endl;
+				else if (subSets[i].getType() == "L")
+					cout << "[AUGMENTATION] A label has been eliminated!" << endl;
+				else if (subSets[i].getType() == "R")
+					cout << "[AUGMENTATION] A rectangle has been eliminated!" << endl;
+			}
+
+			// Eliminate subset
+			subSets.erase(subSets.begin() + i--);
 		}
+	}
+
+	// Check if Debug mode is on
+	if (debug == DEBUG_ON) {
+		cout << "[AUGMENTATION] Subsets eliminated successfully!" << endl;
+		cout << "[AUGMENTATION] Calculating the Homography for each of the subsets..." << endl;
 	}
 
 	// Find homography for each subset
@@ -163,6 +227,24 @@ void Augmentation::localize() {
 		Mat homography = findHomography(subSets[i].getObj(), subSets[i].getScene(), CV_RANSAC);
 		subSets[i].setHomography(homography);
 	}
+
+	// Check if Debug mode is on
+	if (debug == DEBUG_ON) {
+		cout << "[AUGMENTATION] Homography found successfully!" << endl;
+		cout << "[AUGMENTATION] Eliminating the subsets without a valid Homography..." << endl;
+	}
+
+	// Remove the subsets without a valid homography
+	for (int i = 0; i < subSets.size(); i++) {
+		// Check whether the homography is good enough or not
+		if (subSets[i].getHomography().cols == 0 || subSets[i].getHomography().rows == 0) {
+			subSets.erase(subSets.begin() + i--);
+		}
+	}
+
+	// Check if Debug mode is on
+	if (debug == DEBUG_ON)
+		cout << "[AUGMENTATION] Subsets eliminated successfully!" << endl;
 
 	// Set the corners for each subset
 	for (int i = 0; i < subSets.size(); i++) {
@@ -172,11 +254,21 @@ void Augmentation::localize() {
 		subSets[i].addObjCorner(Point2f(0, (float)subSets[i].getImg().rows));
 	}
 
+	// Check if Debug mode is on
+	if (debug == DEBUG_ON)
+		cout << "[AUGMENTATION] Setting the perspective for each subset according to its corresponding Homography..." << endl;
+
 	// Set the perspective for each subset
 	for (int i = 0; i < subSets.size(); i++) {
 		vector<Point2f> sceneCorners;
 		perspectiveTransform(subSets[i].getObjCorners(), sceneCorners, subSets[i].getHomography());
 		subSets[i].setSceneCorners(sceneCorners);
+	}
+
+	// Check if Debug mode is on
+	if (debug == DEBUG_ON) {
+		cout << "[AUGMENTATION] Perspectives set successfully!" << endl;
+		cout << "[AUGMENTATION] Displaying results..." << endl;
 	}
 
 	// Display all of the located subsets
@@ -192,7 +284,7 @@ void Augmentation::display() {
 			int x = (int)subSets[i].getSceneCorner(0).x, y = (int)subSets[i].getSceneCorner(0).y;
 
 			// Create and draw arrow
-			Arrow arrow(Point(x + OFFSET, y + OFFSET + ARROW_SIZE), Point(x + OFFSET, y + OFFSET));
+			Arrow arrow(Point(x + 50, y + 50 + ARROW_SIZE), Point(x + 50, y + 50));
 			arrowedLine(sceneImg, arrow.getTail(), arrow.getTip(), RED, THICKNESS);
 		} else if (subSets[i].getType() == "L") {
 			// Get label position
@@ -203,8 +295,8 @@ void Augmentation::display() {
 			Size textSize = getTextSize(subSets[i].getLabel(), FONT_HERSHEY_PLAIN, SCALE, THICKNESS, &baseline);
 
 			// Calculate the bounding box's dimensions
-			int width = x + textSize.width + OFFSET;
-			int height = y + textSize.height + OFFSET;
+			int width = x + textSize.width + 50;
+			int height = y + textSize.height + 50;
 
 			// Create label
 			Point center(x + (width / 2), y + (height / 2));
@@ -226,7 +318,7 @@ void Augmentation::display() {
 	}
 
 	// Display the final image
-	imshow("Final Image", sceneImg);
+	imshow("Mode: Augmentation", sceneImg);
 
 	// Wait for keyboard press to end the program
 	waitKey(NO_DELAY);

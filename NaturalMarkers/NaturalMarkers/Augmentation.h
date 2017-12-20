@@ -10,6 +10,7 @@ using namespace std;
 using namespace cv::xfeatures2d;
 namespace fs = experimental::filesystem;
 
+#define DEBUG_ON   0
 #define NO_DELAY   0
 #define MULTIPLIER 3
 #define ARROW_SIZE 50
@@ -19,7 +20,6 @@ namespace fs = experimental::filesystem;
 class Augmentation {
 private:
 	// Private properties
-	int debug;
 	string fileName;
 	vector<SubSet> subSets;
 
@@ -27,6 +27,9 @@ private:
 	Mat sceneDescriptors;
 	vector<KeyPoint> sceneKeyPoints;
 public:
+	// Public property
+	int debug;
+
 	// Constructor and destructor
 	Augmentation(const int debug, const string imgPath);
 	~Augmentation();

@@ -67,6 +67,10 @@ void onMouse(int event, int x, int y, int flags, void* param) {
 					Rectangle rectangle(prep->rect);
 					prep->imgs[prep->currImg].addRect(rectangle);
 					prep->imgs[prep->currImg].addID(rectangle.getID());
+
+					// Check if Debug mode is on
+					if (prep->debug == DEBUG_ON)
+						cout << "[PREPARATION] A Rectangle, W = " << rectangle.getRectWidth() << " by H = " << rectangle.getRectHeight() << ", has been added to X = " << rectangle.getRectX() << ", Y = " << rectangle.getRectY() << "!" << endl;
 				}
 
 				// Refresh image
@@ -93,6 +97,10 @@ void onMouse(int event, int x, int y, int flags, void* param) {
 				Arrow arrow(Point(x, y), Point(x, y - ARROW_SIZE));
 				prep->imgs[prep->currImg].addArrow(arrow);
 				prep->imgs[prep->currImg].addID(arrow.getID());
+
+				// Check if Debug mode is on
+				if (prep->debug == DEBUG_ON)
+					cout << "[PREPARATION] An Arrow has been added to X = " << arrow.getTipX() << ", Y = " << arrow.getTipY() << "!" << endl;
 			}
 			break;
 		}
@@ -242,12 +250,28 @@ void Preparation::removeAttribute(const string ID) {
 	char front = ID.front();
 
 	// Check whether the ID belongs to an arrow, a label or a rectangle
-	if (front == 'A')
+	if (front == 'A') {
+		// Remove the arrow
 		imgs[currImg].removeArrow(indexOfArrow(ID));
-	else if (front == 'L')
+
+		// Check if Debug mode is on
+		if (debug == DEBUG_ON)
+			cout << "[PREPARATION] An Arrow has been removed!" << endl;
+	} else if (front == 'L') {
+		// Remove the label
 		imgs[currImg].removeLabel(indexOfLabel(ID));
-	else if (front == 'R')
+
+		// Check if Debug mode is on
+		if (debug == DEBUG_ON)
+			cout << "[PREPARATION] A Label has been removed!" << endl;
+	} else if (front == 'R') {
+		// Remove the rectangle
 		imgs[currImg].removeRect(indexOfRectangle(ID));
+
+		// Check if Debug mode is on
+		if (debug == DEBUG_ON)
+			cout << "[PREPARATION] A Rectangle has been removed!" << endl;
+	}
 }
 
 void Preparation::handleInput(int input) {
@@ -289,6 +313,11 @@ void Preparation::handleInput(int input) {
 				// Set writing mode off
 				WRITING = false;
 
+				// Check if Debug mode is on
+				Label label = imgs[currImg].getLabel((int)(imgs[currImg].getLabels().size() - 1));
+				if (debug == DEBUG_ON)
+					cout << "[PREPARATION] A Label, with the text '" << label.getText() << "', has been added to X = " << label.getCenterX() << ", Y = " << label.getCenterY() << "!" << endl;
+
 				// Refresh image
 				imgs[currImg].updateImage();
 			} else if (!DRAWING && !WRITING) {
@@ -297,21 +326,32 @@ void Preparation::handleInput(int input) {
 
 				// End preparation mode
 				cout << "\n[PREPARATION] Mode ended successfully!" << endl;
-				system("pause");
 				exit(0);
 			}
 			break;
 		}
 		case NEXT: {
 			// Advance torwards the next image on the list
-			if (!DRAWING && !WRITING && currImg < imgs.size() - 1)
+			if (!DRAWING && !WRITING && currImg < imgs.size() - 1) {
+				// Increment the images iterator
 				currImg++;
+
+				// Check if Debug mode is on
+				if (debug == DEBUG_ON)
+					cout << "[PREPARATION] Went torwards the next image!" << endl;
+			}
 			break;
 		}
 		case PREVIOUS: {
 			// Go back to the previous image
-			if (!DRAWING && !WRITING && currImg > 0)
+			if (!DRAWING && !WRITING && currImg > 0) {
+				// Decrement the images iterator
 				currImg--;
+
+				// Check if Debug mode is on
+				if (debug == DEBUG_ON)
+					cout << "[PREPARATION] Went back to the previous image!" << endl;
+			}
 			break;
 		}
 		default: {
@@ -352,9 +392,9 @@ void Preparation::prepareDatabase() {
 		// Loop through all of the arrows
 		 for (int j = 0; j < imgs[i].getArrows().size(); j++) {
 			 // Get subset and it to the list
-			 Rect rectOffSet(imgs[i].getArrow(j).getTipX() - OFFSET,
-							 imgs[i].getArrow(j).getTipY() - ARROW_SIZE - OFFSET,
-							 OFFSET * 2, ARROW_SIZE + (OFFSET * 2));
+			 Rect rectOffSet(imgs[i].getArrow(j).getTipX() - 50,
+							 imgs[i].getArrow(j).getTipY() - ARROW_SIZE - 50,
+							 50 * 2, ARROW_SIZE + (50 * 2));
 			 Mat temp(imgs[i].getPlaceholder(), rectOffSet);
 			 subSet.push_back(temp);
 			 attrs.push_back("A");
@@ -363,10 +403,10 @@ void Preparation::prepareDatabase() {
 		// Loop through all of the labels
 		for (int j = 0; j < imgs[i].getLabels().size(); j++) {
 			// Get subset and it to the list
-			Rect rectOffset(imgs[i].getLabel(j).getBoundingBox().x - OFFSET,
-							imgs[i].getLabel(j).getBoundingBox().y - OFFSET,
-							imgs[i].getLabel(j).getBoundingBox().width + (OFFSET * 2),
-							imgs[i].getLabel(j).getBoundingBox().height + (OFFSET * 2));
+			Rect rectOffset(imgs[i].getLabel(j).getBoundingBox().x - 50,
+							imgs[i].getLabel(j).getBoundingBox().y - 50,
+							imgs[i].getLabel(j).getBoundingBox().width + (50 * 2),
+							imgs[i].getLabel(j).getBoundingBox().height + (50 * 2));
 			Mat temp(imgs[i].getPlaceholder(), rectOffset);
 			subSet.push_back(temp);
 			attrs.push_back("L_" + imgs[i].getLabel(j).getText());

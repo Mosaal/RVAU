@@ -14,6 +14,8 @@ using namespace std;
 using namespace cv::xfeatures2d;
 namespace fs = experimental::filesystem;
 
+#define DEBUG_ON   0
+
 #define BACKSPACE  8
 #define PREVIOUS   9
 #define ENTER      13
@@ -32,7 +34,6 @@ class Preparation {
 private:
 	// Private properties
 	int llx;
-	int debug;
 	string mode;
 	string window;
 	string fileName;
@@ -42,6 +43,7 @@ public:
 	Point org;
 	Rect rect;
 
+	int debug;
 	vector<Image> imgs;
 
 	int currImg = 0;
