@@ -280,23 +280,23 @@ void Augmentation::display() {
 	for (int i = 0; i < subSets.size(); i++) {
 		// Draw the corresponding attribute
 		if (subSets[i].getType() == "A") {
-			// Get arrow's position
+			// Get arrow's data
 			int x = (int)subSets[i].getSceneCorner(0).x, y = (int)subSets[i].getSceneCorner(0).y;
+			int width = (int)(subSets[i].getSceneCorner(1).x - x);
+			int height = (int)(subSets[i].getSceneCorner(3).y - y);
 
 			// Create and draw arrow
-			Arrow arrow(Point(x + 50, y + 50 + ARROW_SIZE), Point(x + 50, y + 50));
+			Arrow arrow(Point(x + (width / 2), y + 25 + ARROW_SIZE), Point(x + (width / 2), y + 25));
 			arrowedLine(sceneImg, arrow.getTail(), arrow.getTip(), RED, THICKNESS);
 		} else if (subSets[i].getType() == "L") {
-			// Get label position
+			// Get label's data
 			int x = (int)subSets[i].getSceneCorner(0).x, y = (int)subSets[i].getSceneCorner(0).y;
+			int width = (int)(subSets[i].getSceneCorner(1).x - x);
+			int height = (int)(subSets[i].getSceneCorner(3).y - y);
 
 			// Get the text's size
 			int baseline = 2;
 			Size textSize = getTextSize(subSets[i].getLabel(), FONT_HERSHEY_PLAIN, SCALE, THICKNESS, &baseline);
-
-			// Calculate the bounding box's dimensions
-			int width = x + textSize.width + 50;
-			int height = y + textSize.height + 50;
 
 			// Create label
 			Point center(x + (width / 2), y + (height / 2));
@@ -306,7 +306,7 @@ void Augmentation::display() {
 			rectangle(sceneImg, label.getBoundingBox(), WHITE, CV_FILLED);
 			putText(sceneImg, label.getText(), label.getLLCorner(), FONT_HERSHEY_PLAIN, SCALE, RED, THICKNESS);
 		} else if (subSets[i].getType() == "R") {
-			// Get rectangle data
+			// Get rectangle's data
 			int x = (int)subSets[i].getSceneCorner(0).x, y = (int)subSets[i].getSceneCorner(0).y;
 			int width = (int)(subSets[i].getSceneCorner(1).x - x);
 			int height = (int)(subSets[i].getSceneCorner(3).y - y);
