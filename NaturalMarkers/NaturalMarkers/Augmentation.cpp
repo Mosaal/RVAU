@@ -42,8 +42,10 @@ void Augmentation::start() {
 	FileStorage inFile(fileName + ".yml", FileStorage::READ);
 
 	// Check if Debug mode is on
-	if (debug == DEBUG_ON)
-		cout << "[AUGMENTATION] Loading data from the corresponding YAML file..." << endl;
+	if (debug == DEBUG_ON) {
+		time = clock();
+		cout << "\n[AUGMENTATION] Loading data from the corresponding YAML file..." << endl;
+	}
 
 	// Read metadata
 	vector<vector<string>> metadata;
@@ -69,8 +71,10 @@ void Augmentation::start() {
 	inFile.release();
 
 	// Check if Debug mode is on
-	if (debug == DEBUG_ON)
-		cout << "[AUGMENTATION] Data loaded successfully!" << endl;
+	if (debug == DEBUG_ON) {
+		time = clock() - time;
+		cout << "[AUGMENTATION] Data loaded successfully! - " << time << " ms" << endl;
+	}
 
 	// Detect the loaded images' and augmented image's features
 	detectFeatures();
@@ -81,16 +85,20 @@ void Augmentation::detectFeatures() {
 	Ptr<SIFT> sift = SIFT::create();
 
 	// Check if Debug mode is on
-	if (debug == DEBUG_ON)
-		cout << "[AUGMENTATION] Using SIFT to detect the image's features..." << endl;
+	if (debug == DEBUG_ON) {
+		time = clock();
+		cout << "\n[AUGMENTATION] Using SIFT to detect the image's features..." << endl;
+	}
 
 	// Detect and save the scene's keypoints and descriptors
 	sift->detectAndCompute(sceneImg, Mat(), sceneKeyPoints, sceneDescriptors);
 
 	// Check if Debug mode is on
 	if (debug == DEBUG_ON) {
-		cout << "[AUGMENTATION] Image's features detected successfully!" << endl;
-		cout << "[AUGMENTATION] Using SIFT to detect subset images' features..." << endl;
+		time = clock() - time;
+		cout << "[AUGMENTATION] Image's features detected successfully! - " << time << " ms" << endl;
+		time = clock();
+		cout << "\n[AUGMENTATION] Using SIFT to detect subset images' features..." << endl;
 	}
 
 	// Detect and save each of the subsets' keypoints and descriptors
@@ -108,8 +116,10 @@ void Augmentation::detectFeatures() {
 	}
 
 	// Check if Debug mode is on
-	if (debug == DEBUG_ON)
-		cout << "[AUGMENTATION] Subset images' features detected successfully!" << endl;
+	if (debug == DEBUG_ON) {
+		time = clock() - time;
+		cout << "[AUGMENTATION] Subset images' features detected successfully! - " << time << " ms" << endl;
+	}
 
 	// Match descriptors using FLANN matcher
 	match();
@@ -120,8 +130,10 @@ void Augmentation::match() {
 	FlannBasedMatcher matcher;
 
 	// Check if Debug mode is on
-	if (debug == DEBUG_ON)
-		cout << "[AUGMENTATION] Using FLANN based matching to match the image's subsets with itself..." << endl;
+	if (debug == DEBUG_ON) {
+		time = clock();
+		cout << "\n[AUGMENTATION] Using FLANN based matching to match the image's subsets with itself..." << endl;
+	}
 
 	// Save all of the matches for each of the subsets
 	for (int i = 0; i < subSets.size(); i++) {
@@ -131,8 +143,10 @@ void Augmentation::match() {
 	}
 
 	// Check if Debug mode is on
-	if (debug == DEBUG_ON)
-		cout << "[AUGMENTATION] All matches were found successfully!" << endl;
+	if (debug == DEBUG_ON) {
+		time = clock() - time;
+		cout << "[AUGMENTATION] All matches were found successfully! - " << time << " ms" << endl;
+	}
 
 	// Calculate the min and max distances between keypoints for each of the subsets
 	for (int i = 0; i < subSets.size(); i++) {
@@ -149,8 +163,10 @@ void Augmentation::match() {
 	}
 
 	// Check if Debug mode is on
-	if (debug == DEBUG_ON)
-		cout << "[AUGMENTATION] Eliminating the non-good matches..." << endl;
+	if (debug == DEBUG_ON) {
+		time = clock();
+		cout << "\n[AUGMENTATION] Eliminating the non-good matches..." << endl;
+	}
 
 	// We only want the good matches
 	for (int i = 0; i < subSets.size(); i++) {
@@ -162,8 +178,10 @@ void Augmentation::match() {
 	}
 
 	// Check if Debug mode is on
-	if (debug == DEBUG_ON)
-		cout << "[AUGMENTATION] Non-good matches eliminated successfully!" << endl;
+	if (debug == DEBUG_ON) {
+		time = clock() - time;
+		cout << "[AUGMENTATION] Non-good matches eliminated successfully! - " << time << " ms" << endl;
+	}
 
 	// Localize the subsets
 	localize();
@@ -171,8 +189,10 @@ void Augmentation::match() {
 
 void Augmentation::localize() {
 	// Check if Debug mode is on
-	if (debug == DEBUG_ON)
-		cout << "[AUGMENTATION] Loading the keypoints from the good matches..." << endl;
+	if (debug == DEBUG_ON) {
+		time = clock();
+		cout << "\n[AUGMENTATION] Loading the keypoints from the good matches..." << endl;
+	}
 
 	// Get the keypoints from the good matches
 	for (int i = 0; i < subSets.size(); i++) {
@@ -193,8 +213,10 @@ void Augmentation::localize() {
 
 	// Check if Debug mode is on
 	if (debug == DEBUG_ON) {
-		cout << "[AUGMENTATION] Keypoints loaded successfully!" << endl;
-		cout << "[AUGMENTATION] Eliminating the subsets without enough keypoints..." << endl;
+		time = clock() - time;
+		cout << "[AUGMENTATION] Keypoints loaded successfully! - " << time << " ms" << endl;
+		time = clock();
+		cout << "\n[AUGMENTATION] Eliminating the subsets without enough keypoints..." << endl;
 	}
 
 	// Remove the subsets without enough points
@@ -218,8 +240,10 @@ void Augmentation::localize() {
 
 	// Check if Debug mode is on
 	if (debug == DEBUG_ON) {
-		cout << "[AUGMENTATION] Subsets eliminated successfully!" << endl;
-		cout << "[AUGMENTATION] Calculating the Homography for each of the subsets..." << endl;
+		time = clock() - time;
+		cout << "[AUGMENTATION] Subsets eliminated successfully! - " << time << " ms" << endl;
+		time = clock();
+		cout << "\n[AUGMENTATION] Calculating the Homography for each of the subsets..." << endl;
 	}
 
 	// Find homography for each subset
@@ -230,21 +254,36 @@ void Augmentation::localize() {
 
 	// Check if Debug mode is on
 	if (debug == DEBUG_ON) {
-		cout << "[AUGMENTATION] Homography found successfully!" << endl;
-		cout << "[AUGMENTATION] Eliminating the subsets without a valid Homography..." << endl;
+		time = clock() - time;
+		cout << "[AUGMENTATION] Homography found successfully! - " << time << " ms" << endl;
+		time = clock();
+		cout << "\n[AUGMENTATION] Eliminating the subsets without a valid Homography..." << endl;
 	}
 
 	// Remove the subsets without a valid homography
 	for (int i = 0; i < subSets.size(); i++) {
 		// Check whether the homography is good enough or not
 		if (subSets[i].getHomography().cols == 0 || subSets[i].getHomography().rows == 0) {
+			// Check if Debug mode is on
+			if (debug == DEBUG_ON) {
+				if (subSets[i].getType() == "A")
+					cout << "[AUGMENTATION] An arrow has been eliminated!" << endl;
+				else if (subSets[i].getType() == "L")
+					cout << "[AUGMENTATION] A label has been eliminated!" << endl;
+				else if (subSets[i].getType() == "R")
+					cout << "[AUGMENTATION] A rectangle has been eliminated!" << endl;
+			}
+
+			// Eliminate subset
 			subSets.erase(subSets.begin() + i--);
 		}
 	}
 
 	// Check if Debug mode is on
-	if (debug == DEBUG_ON)
-		cout << "[AUGMENTATION] Subsets eliminated successfully!" << endl;
+	if (debug == DEBUG_ON) {
+		time = clock() - time;
+		cout << "[AUGMENTATION] Subsets eliminated successfully! - " << time << " ms" << endl;
+	}
 
 	// Set the corners for each subset
 	for (int i = 0; i < subSets.size(); i++) {
@@ -255,8 +294,10 @@ void Augmentation::localize() {
 	}
 
 	// Check if Debug mode is on
-	if (debug == DEBUG_ON)
-		cout << "[AUGMENTATION] Setting the perspective for each subset according to its corresponding Homography..." << endl;
+	if (debug == DEBUG_ON) {
+		time = clock();
+		cout << "\n[AUGMENTATION] Setting the perspective for each subset according to its corresponding Homography..." << endl;
+	}
 
 	// Set the perspective for each subset
 	for (int i = 0; i < subSets.size(); i++) {
@@ -267,8 +308,9 @@ void Augmentation::localize() {
 
 	// Check if Debug mode is on
 	if (debug == DEBUG_ON) {
-		cout << "[AUGMENTATION] Perspectives set successfully!" << endl;
-		cout << "[AUGMENTATION] Displaying results..." << endl;
+		time = clock() - time;
+		cout << "[AUGMENTATION] Perspectives set successfully! - " << time << " ms" << endl;
+		cout << "\n[AUGMENTATION] Displaying results..." << endl;
 	}
 
 	// Display all of the located subsets

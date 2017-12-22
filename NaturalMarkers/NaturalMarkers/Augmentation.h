@@ -1,5 +1,6 @@
 #pragma once
 
+#include <time.h>
 #include <iostream>
 #include <filesystem>
 
@@ -29,6 +30,7 @@ private:
 public:
 	// Public property
 	int debug;
+	clock_t time;
 
 	// Constructor and destructor
 	Augmentation(const int debug, const string imgPath);
