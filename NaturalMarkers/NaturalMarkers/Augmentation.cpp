@@ -132,7 +132,7 @@ void Augmentation::match() {
 	// Check if Debug mode is on
 	if (debug == DEBUG_ON) {
 		time = clock();
-		cout << "\n[AUGMENTATION] Using FLANN based matching to match the image's subsets with itself..." << endl;
+		cout << "\n[AUGMENTATION] Using FLANN based matching to match the subsets with target image..." << endl;
 	}
 
 	// Save all of the matches for each of the subsets
