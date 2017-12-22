@@ -383,7 +383,7 @@ void Preparation::prepareDatabase() {
 
 		// Loop through all of the rectangles
 		for (int j = 0; j < imgs[i].getRects().size(); j++) {
-			// Get subset and it to the list
+			// Get subset and add it to the list
 			Mat temp(imgs[i].getPlaceholder(), imgs[i].getRect(j).getRect());
 			subSet.push_back(temp);
 			attrs.push_back("R");
@@ -391,7 +391,7 @@ void Preparation::prepareDatabase() {
 
 		// Loop through all of the arrows
 		 for (int j = 0; j < imgs[i].getArrows().size(); j++) {
-			 // Get subset and it to the list
+			 // Get subset and add it to the list
 			 Rect rectOffSet(imgs[i].getArrow(j).getTipX() - 50,
 							 imgs[i].getArrow(j).getTipY() - ARROW_SIZE - 50,
 							 50 * 2, ARROW_SIZE + (50 * 2));
@@ -402,7 +402,7 @@ void Preparation::prepareDatabase() {
 
 		// Loop through all of the labels
 		for (int j = 0; j < imgs[i].getLabels().size(); j++) {
-			// Get subset and it to the list
+			// Get subset and add it to the list
 			Rect rectOffset(imgs[i].getLabel(j).getBoundingBox().x - 50,
 							imgs[i].getLabel(j).getBoundingBox().y - 50,
 							imgs[i].getLabel(j).getBoundingBox().width + (50 * 2),
